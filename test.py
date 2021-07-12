@@ -3,8 +3,6 @@ from shortest_path import shortest_path
 
 
 MAP_40_ANSWERS = [
-    (5, 34, [5, 16, 37, 12, 34]),
-    (5, 5,  [5]),
     (8, 24, [8, 14, 16, 37, 12, 17, 10, 24])
 ]
 

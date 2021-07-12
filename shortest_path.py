@@ -2,15 +2,15 @@ import numpy as np
 import copy
 
 class _Node:
-    def __init__(self, id, x, y, is_goal=False):
-        self.is_explored = False
+    def __init__(self, id, x, y, is_goal=False, is_start=False):
         self.is_goal = is_goal
+        self.is_start = is_start
         self.id = id
         self.x = x
         self.y = y
         
     def __sub__(self, other):
-        return np.linalg.norm([self.x, self.y], [other.x, other.y])
+        return [self.x - other.x, self.y - other.y]
 
     
 class _Path:
@@ -20,7 +20,6 @@ class _Path:
             self.nodes.append(starting_node)
         self.cost = 0
         self.is_blocked = False
-        self.is_reached = False
 
     def _append(self, new):
         return self.nodes.append(new)
@@ -39,7 +38,7 @@ class _Path:
         return None if in_place else path
 
     def copy(self):
-        return copy.copy(self)
+        return copy.deepcopy(self)
     
 
 class _ShortestPath:
@@ -60,11 +59,10 @@ class _ShortestPath:
         for adjacent_node_indices in self.map.roads:
             self.roads.append([self.nodes[adjacent_node_idx] for adjacent_node_idx in adjacent_node_indices])
 
-    def _expand(self, intersection: int) -> list:
+    def _expand(self, intersection: int, blacklist: list) -> list:
         new_frontiers = []
         for adjacent_node in self.roads[intersection]:
-            if not adjacent_node.is_explored or adjacent_node.is_goal:
-                adjacent_node.is_explored = True
+            if not any([adjacent_node.is_start, adjacent_node.id in blacklist]):
                 new_frontiers.append(adjacent_node.id)            
         return new_frontiers
     
@@ -85,39 +83,59 @@ class _ShortestPath:
 
 
     def shortest_path(self, start: int, goal: int):
+        if start == goal:
+            return [start]
+
         # Clean-up for the current session
         self._populate_nodes_by_map()
         self._populate_roads_by_map()
         self.nodes[goal].is_goal = True
+        self.nodes[start].is_start = True
 
         # Init
-        frontiers = []
-        
-        new_frontiers = self._expand(start)
-        frontiers.append(new_frontiers)
-        self.paths.append(_Path(start))
-        
+        frontiers = set()
+        first_path = _Path(start)
+        self.paths.append(first_path)
+        frontiers.add(start)
+        new_frontiers = self._expand(start, blacklist=first_path.nodes)
+        shortest_path = None
+        shortest_path_hist = []
         # Main Loop
         current_intersection = start
-        while len(frontiers) != 0:
-            new_frontiers = self._expand(current_intersection)
-            path_to_frontiers = self._get_path_by_last_intersection(current_intersection)
-            for frontier in new_frontiers:
-                step_cost = self.calculate_step_cost(current_intersection, frontier, goal)
-                path_with_frontier = path_to_frontiers.add_intersection(frontier, step_cost, in_place=False)
-                self.paths.append(path_with_frontier)              
-            
-            current_intersection = self._get_min_cost_path().peek()
+        while True:
             frontiers.remove(current_intersection)
+            path_to_frontiers = self._get_path_by_last_intersection(current_intersection)
             self.paths.remove(path_to_frontiers)
-            frontiers.append(new_frontiers)
+            for new_frontier in new_frontiers:
+                step_cost = self._calculate_step_cost(current_intersection, new_frontier, goal)
+                path_with_frontier = path_to_frontiers.add_intersection(new_frontier, step_cost, in_place=False)
+                if new_frontier in frontiers:
+                    # Resolve frontier crash
+                    previous_path = self._get_path_by_last_intersection(new_frontier)
+                    if previous_path.nodes == [8, 14, 16, 37, 12, 17, 10]:
+                        print("Please put a breakpoint here.")
+                    if previous_path.cost >= path_with_frontier.cost:
+                        self.paths.remove(previous_path)
+                        self.paths.append(path_with_frontier)
+                else:
+                    self.paths.append(path_with_frontier)
+            if len(self.paths) == 0:
+                break
+            current_path = self._get_min_cost_path()
+            current_intersection = self._get_min_cost_path().peek()
+            if current_intersection == goal:
+                if shortest_path is None:
+                    shortest_path = current_path
+                shortest_path = current_path if shortest_path.cost > current_path.cost else shortest_path
+                shortest_path_hist.append(shortest_path)
+            frontiers.update(new_frontiers)
+            new_frontiers = self._expand(current_intersection, blacklist=current_path.nodes)
+            
+        return shortest_path.nodes
 
-        reached_paths = filter(lambda path: path.is_reached, self.paths)
-        return min(reached_paths, key=lambda path: path.cost)
 
-
-def distance(self, isec_1: int, isec_2: int):
-    return self.nodes[isec_1] - self.nodes[isec_2]
+    def distance(self, isec_1: int, isec_2: int):
+        return np.linalg.norm(self.nodes[isec_1] - self.nodes[isec_2])
     
 
 class PathNotFoundError(Exception):
