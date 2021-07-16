@@ -1,5 +1,7 @@
 # Route Planner
 A route-planning application based on A* to calculate the shortest path between two points on a map.
+
+
 ![demo](images/shortest_path.png)
 
 ## Getting Started
