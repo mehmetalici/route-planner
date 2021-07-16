@@ -13,9 +13,6 @@ A route-planning application based on A* to calculate the shortest path between 
     Installing conda: https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html
 
 * Python 3 (Version 3.9 is not supported) 
-* Jupyter Notebook
-
-    Recommended to 
 
 ### Installing
 1. Clone project
