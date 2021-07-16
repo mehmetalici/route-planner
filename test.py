@@ -3,7 +3,7 @@ from shortest_path import shortest_path
 
 
 MAP_40_ANSWERS = [
-    (8, 24, [8, 14, 16, 37, 12, 17, 10, 24])
+    (8, 24, [8, 14, 16, 37, 12, 31, 10, 24])
 ]
 
 

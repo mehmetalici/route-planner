@@ -143,9 +143,9 @@ class PathNotFoundError(Exception):
         super().__init__(*args)
 
 
-def shortest_path(m, start: int, end: int):
+def shortest_path(m, start: int, goal: int):
     sp = _ShortestPath(m)
-    return sp.shortest_path(start, end)
+    return sp.shortest_path(start, goal)
     
     
     
