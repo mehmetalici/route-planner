@@ -39,7 +39,7 @@ A route-planning application based on A* to calculate the shortest path between 
     This will launch a new browser window.
 2. In the opened browser window, open `project_notebook.ipynb` which is found in the project root directory.   
 
-3. You can visualize different paths changing `start` and `goal` in the following function call:
+3. Run the cells in notebook from start to end. You can visualize different paths changing `start` and `goal` in the following function call:
     ```python
     show_map(map_40, start=8, goal=24, path=shortest_path(map_40, start=8, goal=24)) 
     ```
